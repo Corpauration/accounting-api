@@ -3,10 +3,11 @@
 use axum::extract::Path;
 use axum::Router;
 use axum::routing::{get, post, delete, patch, put};
-
+use crate::db::DatabaseClient;
 
 pub async fn get_accounts() -> String {
-    format!("Getting all accounts")
+    
+    format!("Get all accounts")
 }
 
 pub async fn create_account() -> String {
@@ -14,19 +15,19 @@ pub async fn create_account() -> String {
 }
 
 pub async fn get_account_by_id(Path(id): Path<u64>) -> String {
-    format!("Get account {}", id)
+    format!("Get account {id}")
 }
 
 pub async fn delete_account(Path(id): Path<u64>) -> String {
-    format!("Delete account {}", id)
+    format!("Delete account {id}")
 }
 
 pub async fn patch_account(Path(id): Path<u64>) -> String {
-    format!("Patch account {}", id)
+    format!("Patch account {id}")
 }
 
 pub async fn put_account_metadata(Path(id): Path<u64>) -> String {
-    format!("Put metadata for account {}", id)
+    format!("Put metadata for account {id}")
 }
 
 pub async fn account_router() -> Router<()> {
