@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Accounts API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        .accounts-list { margin-bottom: 2em; }
+        .account-item { margin-bottom: 0.5em; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Accounts API Test</h1>
+    <section class="accounts-list">
+        <h2>Accounts</h2>
+        <button onclick="fetchAccounts()">Refresh List</button>
+        <div id="accounts"></div>
+    </section>
+    <section>
+        <h2>Create Account</h2>
+        <form id="createAccountForm">
+            <label>Owner ID: <input type="text" name="owner_id" required></label><br>
+            <label>Name: <input type="text" name="name" required></label><br>
+            <label>Description: <input type="text" name="description"></label><br>
+            <label>Tags (comma separated): <input type="text" name="tags" required></label><br>
+            <label>Labels (JSON): <input type="text" name="labels"></label><br>
+            <label>Max Allowed Debt: <input type="number" name="max_allowed_debt" required></label><br>
+            <label>Balance: <input type="number" name="balance" required></label><br>
+            <button type="submit">Create</button>
+        </form>
+        <div id="createResult"></div>
+    </section>
+    <script>
+        async function fetchAccounts() {
+            const res = await fetch('http://127.0.0.1:3000/accounts');
+            const container = document.getElementById('accounts');
+            if (res.ok) {
+                const accounts = await res.json();
+                container.innerHTML = accounts.map(acc =>
+                    `<div class="account-item">ID: ${acc.id}<br>Name: ${acc.name}<br>Owner: ${acc.owner_id}<br>Balance: ${acc.balance}</div>`
+                ).join('');
+            } else {
+                container.innerHTML = `<span class="error">Failed to fetch accounts</span>`;
+            }
+        }
+
+        document.getElementById('createAccountForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const form = e.target;
+            const data = {
+                id: crypto.randomUUID(),
+                owner_id: form.owner_id.value,
+                name: form.name.value,
+                description: form.description.value || null,
+                tags: form.tags.value.split(',').map(t => t.trim()),
+                labels: form.labels.value ? form.labels.value : null,
+                max_allowed_debt: parseInt(form.max_allowed_debt.value),
+                balance: parseInt(form.balance.value),
+                status: "Active"
+            };
+            console.log('Payload:', data);
+            const res = await fetch('http://127.0.0.1:3000/accounts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const resultDiv = document.getElementById('createResult');
+            if (res.ok) {
+                const account = await res.json();
+                resultDiv.innerHTML = `<span class="success">Account created! ID: ${account.id}</span>`;
+                fetchAccounts();
+            } else {
+                let errorMsg = 'Failed to create account';
+                try {
+                    errorMsg += ': ' + await res.text();
+                } catch {}
+                resultDiv.innerHTML = `<span class="error">${errorMsg}</span>`;
+            }
+        };
+
+        // Initial load
+        fetchAccounts();
+    </script>
+</body>
+</html>

@@ -1,13 +1,12 @@
 pub mod admin_actions;
 pub mod errors;
-mod account;
-
+pub mod account;
 use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
 
 #[derive(Clone, Debug)]
 pub struct DatabaseClient {
-    pool: PgPool,
+    pub(crate) pool: PgPool,
 }
 
 impl DatabaseClient {

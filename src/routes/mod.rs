@@ -1,10 +1,21 @@
 pub mod account;
 
+use axum::extract::State;
 use axum::routing::get;
 use axum::Router;
+use tower_http::cors::{CorsLayer, Any};
+use axum::http::header;
 
-pub async fn api() -> Router<()> {
+
+use crate::db;
+
+pub async fn api(State(db): State<db::DatabaseClient>) -> Router<()> {
     Router::new()
-    .route("/", get("nothing to see here..."))
-    .nest("/accounts", account::account_router().await)
+    .nest("/accounts", account::account_router(db))
+    .layer(
+        CorsLayer::new()
+            .allow_origin(Any)
+            .allow_methods(Any)
+            .allow_headers([header::CONTENT_TYPE])
+    )
 }
