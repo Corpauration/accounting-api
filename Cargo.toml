@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1.44.1", features = ["sync", "rt-multi-thread", "macros"] }
+tokio = { version = "1.44.2", features = ["sync", "rt-multi-thread", "macros"] }
 axum = { version = "0.8.1", features = [
     "http1",
     "http2",
