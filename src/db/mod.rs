@@ -1,8 +1,10 @@
+pub mod account;
 pub mod admin_actions;
 pub mod errors;
-pub mod account;
+pub mod operation;
+pub mod payment;
+
 use sqlx::PgPool;
-use sqlx::postgres::PgPoolOptions;
 
 #[derive(Clone, Debug)]
 pub struct DatabaseClient {
@@ -10,11 +12,7 @@ pub struct DatabaseClient {
 }
 
 impl DatabaseClient {
-    fn new(pool: PgPool) -> Self {
+    pub fn new(pool: PgPool) -> Self {
         Self { pool }
-    }
-
-    pub async fn connect(uri: &str) -> Option<Self> {
-        PgPoolOptions::new().connect(uri).await.map(Self::new).ok()
     }
 }

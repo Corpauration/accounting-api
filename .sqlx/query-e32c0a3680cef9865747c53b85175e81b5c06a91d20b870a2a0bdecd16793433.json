@@ -1,0 +1,99 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT id, account_id, amount, timestamp,\n                   labels as \"labels: Json<HashMap<String, String>>\",\n                   kind as \"kind: OperationKind\"\n            FROM operations\n            WHERE account_id = $1 AND id = $2\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "operations",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "account_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "operations",
+            "name": "account_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "amount",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "operations",
+            "name": "amount"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "timestamp",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "operations",
+            "name": "timestamp"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "labels: Json<HashMap<String, String>>",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "operations",
+            "name": "labels"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "kind: OperationKind",
+        "type_info": {
+          "Custom": {
+            "name": "operation_kind",
+            "kind": {
+              "Enum": [
+                "DEBIT",
+                "CREDIT"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "operations",
+            "name": "kind"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "e32c0a3680cef9865747c53b85175e81b5c06a91d20b870a2a0bdecd16793433"
+}

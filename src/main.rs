@@ -1,62 +1,53 @@
-pub mod models;
-pub mod routes;
-pub mod db;
-pub mod errors;
-use std::path::Path;
-use sqlx::migrate::Migrator;
+use accounting_api::db::DatabaseClient;
+use accounting_api::routes;
 use sqlx::postgres::PgPoolOptions;
 use tracing::{error, info};
-use crate::db::DatabaseClient;
-use dotenv::dotenv;
 
-pub fn env_get(env: &'static str) -> String {
-    let env_panic = |e| {
-        error!("{env} is not set ({})", e);
+/// Read a required environment variable, exiting with a clear message if unset.
+fn env_get(env: &'static str) -> String {
+    std::env::var(env).unwrap_or_else(|e| {
+        error!("{env} is not set ({e})");
         std::process::exit(1);
-    };
-
-    std::env::var(env).map_err(env_panic).unwrap()
+    })
 }
 
+/// Read an optional environment variable, falling back to `default`.
+fn env_or(env: &str, default: &str) -> String {
+    std::env::var(env).unwrap_or_else(|_| default.to_string())
+}
 
 #[tokio::main]
 async fn main() {
-    dotenv().ok();
-    let postgresql_uri = env_get("POSTGRESQL_ADDON_URI");
-    info!("Connecting to database");
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
+        )
+        .init();
 
-    // Create a connection pool
+    let postgresql_uri = env_get("POSTGRESQL_ADDON_URI");
+    let host = env_or("HOST", "0.0.0.0");
+    let port = env_or("PORT", "3000");
+    let addr = format!("{host}:{port}");
+
+    info!("Connecting to database");
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(&postgresql_uri)
         .await
-        .expect("Failed to create pool");
+        .expect("Failed to create database pool");
 
-    // Run migrations
-    let migrator = Migrator::new(Path::new("migrations")).await.unwrap();
-    migrator.run(&pool).await.unwrap();
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await
+        .expect("Failed to run migrations");
     info!("Database migrations applied");
 
-    
-    let db = match DatabaseClient::connect(&postgresql_uri).await {
-        Some(db) => {
-            info!("Connected to database!");
-            db
-        }
-        None => {
-            error!("Failed to connect to database");
-            std::process::exit(1);
-        }
-    };
-    let app = routes::api(axum::extract::State(db)).await.into_make_service();
-    // let app = api::app(
-    //     ApiHandlerState::new(ApiHandler {
-    //         db,
-    //         sessions: Arc::new(RwLock::new(HashMap::new())),
-    //     })
-    // );
-    // _ = db.clean_invitations().await;
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    println!("Server running on http://127.0.0.1:3000");
-    axum::serve(listener, app).await.unwrap();
+    let db = DatabaseClient::new(pool);
+    let app = routes::api(db);
+
+    let listener = tokio::net::TcpListener::bind(&addr)
+        .await
+        .unwrap_or_else(|e| panic!("Failed to bind {addr}: {e}"));
+    info!("Server running on http://{addr}");
+    axum::serve(listener, app).await.expect("Server error");
 }

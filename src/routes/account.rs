@@ -1,51 +1,109 @@
-// temporary file to hold the code for the accounts module
-
-use axum::Router;
-use axum::routing::{get, post, delete, patch, put};
-use crate::db::{self};
-use axum::extract::{State};
-use axum::{Json};
-use crate::models::account::Account;
+use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
-use axum::extract::rejection::JsonRejection;
-use axum::response::IntoResponse;
+use axum::Json;
+use utoipa_axum::router::OpenApiRouter;
+use utoipa_axum::routes;
+use uuid::Uuid;
 
+use crate::db::DatabaseClient;
+use crate::errors::AccountingError;
+use crate::filters::AccountFilter;
+use crate::models::account::{Account, CreateAccountRequest, MetadataRequest, PatchAccountRequest};
 
-pub async fn get_accounts(State(db): State<db::DatabaseClient>) -> Result<Json<Vec<Account>>, axum::http::StatusCode> {
-    match db.get_accounts().await {
-        Ok(accounts) => {
-            println!("Fetched accounts: {:?}", accounts);
-            Ok(Json(accounts))
-        },
-        Err(_e) => Err(axum::http::StatusCode::INTERNAL_SERVER_ERROR),
-    }
+#[utoipa::path(
+    get, path = "/accounts", tag = "accounts",
+    params(AccountFilter),
+    responses((status = 200, description = "Matching accounts", body = Vec<Account>))
+)]
+pub async fn list_accounts(
+    State(db): State<DatabaseClient>,
+    Query(filter): Query<AccountFilter>,
+) -> Result<Json<Vec<Account>>, AccountingError> {
+    Ok(Json(db.list_accounts(&filter).await?))
 }
 
+#[utoipa::path(
+    post, path = "/accounts", tag = "accounts",
+    request_body = CreateAccountRequest,
+    responses((status = 201, description = "Account created", body = Account))
+)]
 pub async fn create_account(
-    State(db): State<db::DatabaseClient>,
-    payload: Result<Json<Account>, JsonRejection>
-) -> impl IntoResponse {
-    match payload {
-        Ok(Json(account)) => match db.create_account(account).await {
-            Ok(new_account) => Json(new_account).into_response(),
-            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, format!("DB error: {}", e)).into_response(),
-        },
-        Err(rejection) => {
-            println!("Deserialization error: {:?}", rejection);
-            (StatusCode::UNPROCESSABLE_ENTITY, format!("Invalid payload: {:?}", rejection)).into_response()
-        }
-    }
+    State(db): State<DatabaseClient>,
+    Json(req): Json<CreateAccountRequest>,
+) -> Result<(StatusCode, Json<Account>), AccountingError> {
+    let account = db.create_account(req).await?;
+    Ok((StatusCode::CREATED, Json(account)))
 }
 
-pub fn account_router(db: db::DatabaseClient) -> Router<()> {
-    Router::new()
-        .route("/", get(get_accounts))
-        .route("/", post(create_account))
-        // .route("/{id}", get(get_account_by_id))
-        // .route("/{id}", delete(delete_account))
-        // .route("/{id}", patch(patch_account))
-        // .route("/{id}/metadata", put(put_account_metadata))
-        .with_state(db)
-
+#[utoipa::path(
+    get, path = "/accounts/{id}", tag = "accounts",
+    params(("id" = Uuid, Path, description = "Account id")),
+    responses((status = 200, body = Account), (status = 404, description = "Not found"))
+)]
+pub async fn get_account(
+    State(db): State<DatabaseClient>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<Account>, AccountingError> {
+    db.get_account_by_id(id)
+        .await?
+        .map(Json)
+        .ok_or(AccountingError::NotFound)
 }
 
+#[utoipa::path(
+    patch, path = "/accounts/{id}", tag = "accounts",
+    params(("id" = Uuid, Path, description = "Account id")),
+    request_body = PatchAccountRequest,
+    responses((status = 200, body = Account), (status = 404, description = "Not found"))
+)]
+pub async fn patch_account(
+    State(db): State<DatabaseClient>,
+    Path(id): Path<Uuid>,
+    Json(req): Json<PatchAccountRequest>,
+) -> Result<Json<Account>, AccountingError> {
+    db.patch_account(id, req)
+        .await?
+        .map(Json)
+        .ok_or(AccountingError::NotFound)
+}
+
+#[utoipa::path(
+    delete, path = "/accounts/{id}", tag = "accounts",
+    params(("id" = Uuid, Path, description = "Account id")),
+    responses((status = 200, description = "Soft-deleted account", body = Account), (status = 404, description = "Not found"))
+)]
+pub async fn delete_account(
+    State(db): State<DatabaseClient>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<Account>, AccountingError> {
+    db.delete_account(id)
+        .await?
+        .map(Json)
+        .ok_or(AccountingError::NotFound)
+}
+
+#[utoipa::path(
+    put, path = "/accounts/{id}/metadata", tag = "accounts",
+    params(("id" = Uuid, Path, description = "Account id")),
+    request_body = MetadataRequest,
+    responses((status = 200, body = Account), (status = 404, description = "Not found"))
+)]
+pub async fn put_metadata(
+    State(db): State<DatabaseClient>,
+    Path(id): Path<Uuid>,
+    Json(req): Json<MetadataRequest>,
+) -> Result<Json<Account>, AccountingError> {
+    db.set_account_metadata(id, req)
+        .await?
+        .map(Json)
+        .ok_or(AccountingError::NotFound)
+}
+
+/// Absolute-path routes for this slice, generic over `DatabaseClient` state.
+/// State is applied centrally in `routes::api`.
+pub fn routes() -> OpenApiRouter<DatabaseClient> {
+    OpenApiRouter::new()
+        .routes(routes!(list_accounts, create_account))
+        .routes(routes!(get_account, patch_account, delete_account))
+        .routes(routes!(put_metadata))
+}
