@@ -1,0 +1,121 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT account_id, amount,\n                   method as \"method?: PaymentMethod\",\n                   purpose as \"purpose: PaymentPurpose\",\n                   status as \"status: PaymentStatus\",\n                   labels as \"labels: Json<HashMap<String, String>>\"\n            FROM payments\n            WHERE id = $1\n            FOR UPDATE\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "account_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "account_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "amount",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "amount"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "method?: PaymentMethod",
+        "type_info": {
+          "Custom": {
+            "name": "payment_method",
+            "kind": {
+              "Enum": [
+                "ACCOUNT_BALANCE",
+                "EXTERNAL"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "method"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "purpose: PaymentPurpose",
+        "type_info": {
+          "Custom": {
+            "name": "payment_purpose",
+            "kind": {
+              "Enum": [
+                "PURCHASE",
+                "TOP_UP"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "purpose"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "status: PaymentStatus",
+        "type_info": {
+          "Custom": {
+            "name": "payment_status",
+            "kind": {
+              "Enum": [
+                "PENDING",
+                "SUCCEEDED",
+                "FAILED",
+                "CANCELED",
+                "PROCESSING"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "labels: Json<HashMap<String, String>>",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "labels"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "f0f4d0d4b866f1799d88150daac2015b79bdf985972bc4f1f93abb3433083fa3"
+}

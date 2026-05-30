@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT COALESCE(SUM(CASE kind WHEN 'CREDIT' THEN amount ELSE -amount END), 0)::bigint as \"s!\"\n           FROM operations WHERE account_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "s!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "ff4855ee869993a827ea2ba1eaab00661573da6b69bb5b6f69b29b3fad85b9a1"
+}

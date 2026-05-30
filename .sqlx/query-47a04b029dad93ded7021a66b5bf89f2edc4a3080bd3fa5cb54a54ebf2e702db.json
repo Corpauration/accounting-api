@@ -1,0 +1,99 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT account_id, amount,\n                   purpose as \"purpose: PaymentPurpose\",\n                   status as \"status: PaymentStatus\",\n                   labels as \"labels: Json<HashMap<String, String>>\"\n            FROM payments\n            WHERE id = $1\n            FOR UPDATE\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "account_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "account_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "amount",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "amount"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "purpose: PaymentPurpose",
+        "type_info": {
+          "Custom": {
+            "name": "payment_purpose",
+            "kind": {
+              "Enum": [
+                "PURCHASE",
+                "TOP_UP"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "purpose"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "status: PaymentStatus",
+        "type_info": {
+          "Custom": {
+            "name": "payment_status",
+            "kind": {
+              "Enum": [
+                "PENDING",
+                "SUCCEEDED",
+                "FAILED",
+                "CANCELED",
+                "PROCESSING"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "labels: Json<HashMap<String, String>>",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "payments",
+            "name": "labels"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "47a04b029dad93ded7021a66b5bf89f2edc4a3080bd3fa5cb54a54ebf2e702db"
+}

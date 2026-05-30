@@ -1,44 +1,39 @@
-use serde::{Deserialize, Serialize};
-use sqlx::Type;
 use std::collections::HashMap;
+
+use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Type)]
-#[sqlx(type_name = "operation_kind")]
+use crate::models::Labels;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type, ToSchema)]
+#[sqlx(type_name = "operation_kind", rename_all = "SCREAMING_SNAKE_CASE")]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum OperationKind {
-    #[sqlx(rename = "DEBIT")]
     Debit,
-    #[sqlx(rename = "CREDIT")]
     Credit,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// An append-only ledger entry.
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct Operation {
     pub id: Uuid,
     pub account_id: Uuid,
     pub amount: i32,
+    #[serde(with = "time::serde::rfc3339")]
+    #[schema(value_type = String, format = DateTime)]
     pub timestamp: OffsetDateTime,
-    pub labels: HashMap<String, String>,
+    #[schema(value_type = HashMap<String, String>)]
+    pub labels: Labels,
     pub kind: OperationKind,
 }
 
-impl Operation {
-    pub fn new(
-        id: Uuid,
-        account_id: Uuid,
-        amount: i32,
-        timestamp: OffsetDateTime,
-        labels: HashMap<String, String>,
-        kind: OperationKind,
-    ) -> Self {
-        Self {
-            id,
-            account_id,
-            amount,
-            timestamp,
-            labels,
-            kind,
-        }
-    }
+/// Body for `POST /accounts/{id}/operations`.
+#[derive(Debug, Clone, Deserialize, ToSchema)]
+pub struct CreateOperationRequest {
+    pub kind: OperationKind,
+    pub amount: i32,
+    #[serde(default)]
+    pub labels: HashMap<String, String>,
 }

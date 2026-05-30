@@ -1,0 +1,126 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT id, payment_id,\n                   from_status as \"from_status?: PaymentStatus\",\n                   to_status as \"to_status: PaymentStatus\",\n                   timestamp, reason, actor\n            FROM payment_events\n            WHERE payment_id = $1\n            ORDER BY timestamp ASC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "payment_events",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "payment_id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "payment_events",
+            "name": "payment_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "from_status?: PaymentStatus",
+        "type_info": {
+          "Custom": {
+            "name": "payment_status",
+            "kind": {
+              "Enum": [
+                "PENDING",
+                "SUCCEEDED",
+                "FAILED",
+                "CANCELED",
+                "PROCESSING"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "payment_events",
+            "name": "from_status"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "to_status: PaymentStatus",
+        "type_info": {
+          "Custom": {
+            "name": "payment_status",
+            "kind": {
+              "Enum": [
+                "PENDING",
+                "SUCCEEDED",
+                "FAILED",
+                "CANCELED",
+                "PROCESSING"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "payment_events",
+            "name": "to_status"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "timestamp",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "payment_events",
+            "name": "timestamp"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "reason",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "payment_events",
+            "name": "reason"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "actor",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "payment_events",
+            "name": "actor"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      true
+    ]
+  },
+  "hash": "6ebbd7a12d8d6d876a2782e39214e94746fe357b800e55b459a55ed18ce4012f"
+}

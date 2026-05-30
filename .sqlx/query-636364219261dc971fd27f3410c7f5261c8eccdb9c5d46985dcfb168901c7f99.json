@@ -1,0 +1,165 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO accounts (id, owner_id, name, description, tags, labels, max_allowed_debt, balance)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, 0)\n            RETURNING id, owner_id, name, description, tags,\n                      labels as \"labels: Json<std::collections::HashMap<String, String>>\",\n                      max_allowed_debt, balance,\n                      status as \"status: AccountStatus\",\n                      created_at, updated_at\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid",
+        "origin": {
+          "Table": {
+            "table": "accounts",
+            "name": "id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "owner_id",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "accounts",
+            "name": "owner_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "accounts",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "accounts",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "tags",
+        "type_info": "TextArray",
+        "origin": {
+          "Table": {
+            "table": "accounts",
+            "name": "tags"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "labels: Json<std::collections::HashMap<String, String>>",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "accounts",
+            "name": "labels"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "max_allowed_debt",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "accounts",
+            "name": "max_allowed_debt"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "balance",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "accounts",
+            "name": "balance"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "status: AccountStatus",
+        "type_info": {
+          "Custom": {
+            "name": "account_status",
+            "kind": {
+              "Enum": [
+                "ACTIVE",
+                "DEACTIVATED",
+                "DELETED"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "accounts",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "created_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "accounts",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "updated_at",
+        "type_info": "Timestamptz",
+        "origin": {
+          "Table": {
+            "table": "accounts",
+            "name": "updated_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "TextArray",
+        "Jsonb",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "636364219261dc971fd27f3410c7f5261c8eccdb9c5d46985dcfb168901c7f99"
+}

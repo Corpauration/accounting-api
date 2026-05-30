@@ -1,29 +1,11 @@
-use crate::errors::AccountingError;
-use serde::{Deserialize, Serialize};
-use std::error::Error;
-use std::fmt::{Display, Formatter};
+use thiserror::Error;
 
-#[derive(Debug, Serialize, Deserialize)]
+/// Errors raised by the repository/conversion layer (e.g. decoding a stored
+/// admin-action row back into its typed form).
+#[derive(Debug, Error)]
 pub enum RepositoryError {
+    #[error("invalid action kind: {0}")]
     InvalidActionKind(String),
+    #[error("invalid max debt value")]
     InvalidMaxDebtValue,
-}
-
-impl Display for RepositoryError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            RepositoryError::InvalidActionKind(kind) => {
-                write!(f, "Invalid action kind: {}", kind)
-            }
-            RepositoryError::InvalidMaxDebtValue => write!(f, "Invalid max debt value"),
-        }
-    }
-}
-
-impl Error for RepositoryError {}
-
-impl Into<AccountingError> for RepositoryError {
-    fn into(self) -> AccountingError {
-        AccountingError::RepositoryError(self)
-    }
 }
